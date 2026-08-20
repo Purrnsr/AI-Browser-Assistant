@@ -1,34 +1,102 @@
 import { useState } from 'react';
-import reactLogo from '@/assets/react.svg';
-import wxtLogo from '/wxt.svg';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [content, setContent] = useState('');
+  const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const extractPage = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const tabs = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
+      const activeTab = tabs[0];
+
+      if (!activeTab?.id) {
+        throw new Error('No active tab found.');
+      }
+
+      const response = await browser.tabs.sendMessage(activeTab.id, {
+        type: 'EXTRACT_PAGE',
+      });
+
+      if (!response?.success) {
+        throw new Error('Failed to extract webpage content.');
+      }
+
+      setTitle(response.title || '');
+      setContent(response.content || '');
+    } catch (err) {
+      console.error('Page extraction failed:', err);
+
+      setError(
+        'Unable to extract this page. Try refreshing the webpage and opening the extension again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="app">
+      <header className="app-header">
+        <h1>AI Browser Assistant</h1>
+
+        <p className="subtitle">Webpage Content Extractor</p>
+
+        <button
+          className="extract-button"
+          onClick={extractPage}
+          disabled={loading}
+        >
+          {loading ? 'Extracting...' : 'Extract Page'}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the WXT and React logos to learn more
-      </p>
-    </>
+      </header>
+
+      {error && <div className="error-message">{error}</div>}
+
+      {!content && !loading && !error && (
+        <div className="empty-state">
+          <div className="empty-icon">📄</div>
+          <h2>Ready to extract</h2>
+          <p>
+            Open a webpage and click <strong>Extract Page</strong> to view its
+            readable content here.
+          </p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Extracting webpage content...</p>
+        </div>
+      )}
+
+      {content && !loading && (
+        <main className="content-container">
+          <div className="document-header">
+            <span className="document-label">EXTRACTED PAGE</span>
+            <h2>{title || 'Untitled Page'}</h2>
+          </div>
+
+          <article className="document-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {content}
+            </ReactMarkdown>
+          </article>
+        </main>
+      )}
+    </div>
   );
 }
 
