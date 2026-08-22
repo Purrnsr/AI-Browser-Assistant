@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import reactLogo from '@/assets/react.svg';
-import wxtLogo from '/wxt.svg';
-import './App.css';
+import { useState } from "react";
+import { ContextQA } from "./ContextQA";
 
-function App() {
-  const [count, setCount] = useState(0);
+export default function App() {
+  const [activeTab, setActiveTab] = useState<"qa" | "other">("qa");
 
   return (
-    <>
-      <div>
-        <a href="https://wxt.dev" target="_blank">
-          <img src={wxtLogo} className="logo" alt="WXT logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div style={{ width: "360px", padding: "12px", fontFamily: "sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <h3 style={{ margin: 0, fontSize: "15px", fontWeight: "bold" }}>AI Browser Assistant</h3>
       </div>
-      <h1>WXT + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+
+      <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "12px" }}>
+        <button
+          onClick={() => setActiveTab("qa")}
+          style={{
+            flex: 1,
+            padding: "8px",
+            border: "none",
+            background: "none",
+            cursor: "pointer",
+            fontWeight: activeTab === "qa" ? "bold" : "normal",
+            borderBottom: activeTab === "qa" ? "2px solid #2563eb" : "none",
+            color: activeTab === "qa" ? "#2563eb" : "#64748b",
+            fontSize: "12px",
+          }}
+        >
+          Context Q&A
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
       </div>
-      <p className="read-the-docs">
-        Click on the WXT and React logos to learn more
-      </p>
-    </>
+
+      {activeTab === "qa" && <ContextQA />}
+    </div>
   );
 }
-
-export default App;

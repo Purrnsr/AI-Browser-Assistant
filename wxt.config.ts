@@ -1,6 +1,8 @@
 import { defineConfig } from 'wxt';
 
-// See https://wxt.dev/api/config.html
 export default defineConfig({
-  modules: ['@wxt-dev/module-react'],
+  manifest: {
+    permissions: ['activeTab', 'tabs', 'scripting'],
+    host_permissions: ['<all_urls>', 'http://localhost:11434/*'],
+  },
 });
