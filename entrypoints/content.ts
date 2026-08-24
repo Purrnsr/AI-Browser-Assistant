@@ -27,7 +27,7 @@ export default defineContentScript({
         .replace(/\n\s*\n/g, '\n')
         .trim();
 
-      // Handles Prapti's EXTRACT_PAGE action (Promise based)
+      // Handles EXTRACT_PAGE action (Promise based)
       if (message?.type === 'EXTRACT_PAGE' || message?.action === 'EXTRACT_PAGE') {
         return Promise.resolve({
           success: true,
@@ -37,7 +37,7 @@ export default defineContentScript({
         });
       }
 
-      // Handles Q&A's EXTRACT_PAGE_CONTENT action (Callback based)
+      // Handles EXTRACT_PAGE_CONTENT action (Callback based)
       if (message?.action === 'EXTRACT_PAGE_CONTENT' || message?.type === 'EXTRACT_PAGE_CONTENT') {
         sendResponse({ content: text.slice(0, 25000) });
       }

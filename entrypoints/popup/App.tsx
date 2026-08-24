@@ -35,18 +35,31 @@ function App() {
     setSummary('');
 
     try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-      const activeTab = tabs[0];
-      if (!activeTab?.id) throw new Error('No active tab found.');
+      const tabs = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
 
-      const response = await browser.tabs.sendMessage(activeTab.id, { type: 'EXTRACT_PAGE' });
-      if (!response?.success) throw new Error('Failed to extract webpage content.');
+      const activeTab = tabs[0];
+
+      if (!activeTab?.id) {
+        throw new Error('No active tab found.');
+      }
+
+      const response = await browser.tabs.sendMessage(activeTab.id, {
+        type: 'EXTRACT_PAGE',
+      });
+
+      if (!response?.success) {
+        throw new Error('Failed to extract webpage content.');
+      }
 
       setTitle(response.title || '');
       setContent(response.content || '');
+      console.log('[Extraction] Content preview:', response.content?.slice(0, 5000));
     } catch (err) {
       console.error('Page extraction failed:', err);
-      setError('Unable to extract page. Refresh the webpage and try again.');
+      setError('Unable to extract this page. Try refreshing the webpage and opening the extension again.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +79,7 @@ function App() {
       setSummary(result);
     } catch (err) {
       console.error('Page summarization failed:', err);
-      setError('Unable to generate summary. Ensure Ollama is running.');
+      setError('Unable to generate the summary. Make sure Ollama is running and the llama3.2 model is available.');
     } finally {
       setSummarizing(false);
     }
