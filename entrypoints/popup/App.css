@@ -2,144 +2,70 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
-  min-width: 420px;
-  background: #f5f7fb;
-  color: #1f2937;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    Arial,
-    sans-serif;
+  width: 400px;
+  height: 540px;
+  overflow: hidden;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .app {
-  width: 520px;
-  max-width: 100%;
-  min-height: 560px;
-  background: #ffffff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
 }
 
 .app-header {
-  padding: 20px 24px 18px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
+  flex-shrink: 0;
 }
 
-.app-header h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
+.tab-container {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 12px;
 }
 
-.app-header p {
-  margin: 5px 0 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.app-content {
-  padding: 20px 24px 24px;
-}
-
-.extract-button {
-  width: 100%;
-  padding: 12px 16px;
+.tab-btn {
+  flex: 1;
+  padding: 8px 0;
   border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
+  background: none;
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    transform 0.1s ease;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
 }
 
-.extract-button:hover {
-  background: #1d4ed8;
-}
-
-.extract-button:active {
-  transform: translateY(1px);
-}
-
-.extract-button:disabled {
-  background: #93c5fd;
-  cursor: not-allowed;
+.tab-btn.active {
+  color: #2563eb;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
 }
 
 .error-message {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #b91c1c;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.page-info {
-  margin-top: 20px;
-  padding: 14px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #f9fafb;
-}
-
-.section-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #6b7280;
-}
-
-.page-info h2 {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.45;
-  font-weight: 600;
-  color: #111827;
-  overflow-wrap: anywhere;
-}
-
-.content-section {
-  margin-top: 20px;
-}
-
-.content-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.content-header h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 650;
-  color: #111827;
-}
-
-.content-container {
-  height: 390px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 18px 18px 20px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  background: #ffffff;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 8px;
 }
 
 .extracted-content {
@@ -148,31 +74,26 @@ body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: normal;
-
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 13px;
+  line-height: 1.6;
   color: #374151;
-}
-
-/* Improve spacing between blocks represented in extracted Markdown */
-.extracted-content {
   text-align: left;
 }
 
-/* Vertical scrollbar */
-.content-container::-webkit-scrollbar {
-  width: 7px;
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
 }
 
-.content-container::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.content-container::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
 }
 
-.content-container::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
