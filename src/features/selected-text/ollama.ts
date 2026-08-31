@@ -8,13 +8,18 @@ const MODEL_NAME = 'llama3.2:latest';
 
 export const processSelectedText = async (
   text: string,
-  operation: SelectedTextOperation
+  operation: SelectedTextOperation,
+  targetLanguage?: string
 ): Promise<string> => {
   if (!text.trim()) {
     throw new Error('No selected text was provided.');
   }
 
-  const prompt = buildSelectedTextPrompt(text, operation);
+  const prompt = buildSelectedTextPrompt(
+  text,
+  operation,
+  targetLanguage
+);
 
   const response = await fetch(OLLAMA_URL, {
     method: 'POST',
