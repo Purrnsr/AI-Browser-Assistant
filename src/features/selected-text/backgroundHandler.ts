@@ -9,10 +9,10 @@ export const handleSelectedTextMessage = async (
 ): Promise<SelectedTextResponse> => {
   try {
     const result = await processSelectedText(
-      message.text,
-      message.operation
-    );
-
+  message.text,
+  message.operation,
+  message.targetLanguage
+);
     return {
       success: true,
       result,

@@ -1,11 +1,13 @@
 export type SelectedTextOperation =
   | 'explain'
   | 'simplify'
-  | 'rephrase';
+  | 'rephrase'
+  | 'translate';
 
 export const buildSelectedTextPrompt = (
   text: string,
-  operation: SelectedTextOperation
+  operation: SelectedTextOperation,
+  targetLanguage?: string
 ): string => {
   switch (operation) {
     case 'explain':
@@ -42,6 +44,25 @@ Requirements:
 - Improve clarity and readability.
 - Use natural language.
 - Do not add new information.
+
+Selected text:
+
+${text}`;
+
+    case 'translate':
+      if (!targetLanguage?.trim()) {
+        throw new Error('Target language is required for translation.');
+      }
+
+      return `Translate the following selected text into ${targetLanguage}.
+
+Requirements:
+- Translate only the provided text.
+- Preserve the original meaning.
+- Preserve important contextual information.
+- Use natural and grammatically correct ${targetLanguage}.
+- Do not add explanations, comments, or information that is not present in the original text.
+- Return only the translated text.
 
 Selected text:
 

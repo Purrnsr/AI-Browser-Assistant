@@ -4,6 +4,7 @@ export type SelectedTextRequest = {
   type: 'SELECTED_TEXT_PROCESS';
   text: string;
   operation: SelectedTextOperation;
+  targetLanguage?: string;
 };
 
 export type SelectedTextResponse = {
