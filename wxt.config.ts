@@ -5,8 +5,8 @@ export default defineConfig({
 
   manifest: {
     name: 'Synapse AI',
-    description: 'AI-powered browser assistant with Summarizer and Context Q&A',
-    permissions: ['activeTab', 'tabs', 'scripting'],
+    description: 'AI-powered browser assistant',
+    permissions: ['activeTab', 'tabs', 'scripting', 'storage'],
     host_permissions: [
       '<all_urls>',
       'http://localhost:11434/*',
