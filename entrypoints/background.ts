@@ -4,6 +4,9 @@ import type { SelectedTextRequest } from '../src/features/selected-text/messages
 import { handleGenerateNotesMessage } from '../src/features/ai-notes/backgroundHandler';
 import type { GenerateNotesRequest } from '../src/features/ai-notes/messages';
 
+import { handleGenerateStudyMaterialMessage } from '../src/features/study-material/backgroundHandler';
+import type { GenerateStudyMaterialRequest } from '../src/features/study-material/messages';
+
 export default defineBackground(() => {
   console.log('AI Browser Assistant background loaded.');
 
@@ -17,6 +20,12 @@ export default defineBackground(() => {
     if (message?.type === 'AI_NOTES_GENERATE') {
       return handleGenerateNotesMessage(
         message as GenerateNotesRequest
+      );
+    }
+
+    if (message?.type === 'STUDY_MATERIAL_GENERATE') {
+      return handleGenerateStudyMaterialMessage(
+        message as GenerateStudyMaterialRequest
       );
     }
   });
