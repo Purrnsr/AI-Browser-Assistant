@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { browser } from 'wxt/browser';
 import { ContextQA } from './ContextQA';
 import { AINotes } from './AINotes';
+import { StudyMaterial } from './StudyMaterial';
 import './App.css';
 interface ExtractedImage {
   src: string;
@@ -192,6 +193,7 @@ console.log(
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
               </div>
  <AINotes content={content} images={images} />
+<StudyMaterial content={content} />
             </div>
           )}
         </div>
