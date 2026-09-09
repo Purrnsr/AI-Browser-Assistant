@@ -1,4 +1,6 @@
 import { browser } from 'wxt/browser';
+import { defaultExtractContent } from '../src/parser/default';
+import { extractPageImages } from '../src/features/ai-notes/images';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -7,39 +9,75 @@ export default defineContentScript({
     console.log('AI Browser Assistant content script loaded.');
 
     browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-      // Clean HTML extraction logic directly without external dependencies
-      const clone = document.body.cloneNode(true) as HTMLElement;
-      const removeSelectors = [
-        'script',
-        'style',
-        'noscript',
-        'nav',
-        'header',
-        'footer',
-        'aside',
-        '.vector-header-container',
-        '.vector-toc',
-        '#mw-navigation',
-      ];
-      clone.querySelectorAll(removeSelectors.join(',')).forEach((el) => el.remove());
+      if (
+        message?.type === 'EXTRACT_PAGE' ||
+        message?.action === 'EXTRACT_PAGE'
+      ) {
+        try {
+          const html = document.documentElement.outerHTML;
 
-      const text = (clone.innerText || clone.textContent || '')
-        .replace(/\n\s*\n/g, '\n')
-        .trim();
+          const content = defaultExtractContent(
+            html,
+            window.location.href
+          );
 
-      // Handles EXTRACT_PAGE action (Promise based)
-      if (message?.type === 'EXTRACT_PAGE' || message?.action === 'EXTRACT_PAGE') {
-        return Promise.resolve({
-          success: true,
-          content: text.slice(0, 25000),
-          url: window.location.href,
-          title: document.title,
-        });
+          const images = extractPageImages();
+
+          console.log(
+            '[Extraction] Structured content length:',
+            content.length
+          );
+
+          console.log(
+            '[Extraction] Images extracted:',
+            images.length
+          );
+
+          return Promise.resolve({
+            success: true,
+            content: content.slice(0, 25000),
+            images,
+            url: window.location.href,
+            title: document.title,
+          });
+        } catch (error) {
+          console.error(
+            '[Extraction] Structured extraction failed:',
+            error
+          );
+
+          return Promise.resolve({
+            success: false,
+            error: 'Failed to extract webpage content.',
+          });
+        }
       }
 
-      // Handles EXTRACT_PAGE_CONTENT action (Callback based)
-      if (message?.action === 'EXTRACT_PAGE_CONTENT' || message?.type === 'EXTRACT_PAGE_CONTENT') {
-        sendResponse({ content: text.slice(0, 25000) });
+      if (
+        message?.action === 'EXTRACT_PAGE_CONTENT' ||
+        message?.type === 'EXTRACT_PAGE_CONTENT'
+      ) {
+        try {
+          const html = document.documentElement.outerHTML;
+
+          const content = defaultExtractContent(
+            html,
+            window.location.href
+          );
+
+          sendResponse({
+            content: content.slice(0, 25000),
+          });
+        } catch (error) {
+          console.error(
+            '[Extraction] Content extraction failed:',
+            error
+          );
+
+          sendResponse({
+            content: '',
+          });
+        }
       }
 
       return true;

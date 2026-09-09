@@ -3,8 +3,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { browser } from 'wxt/browser';
 import { ContextQA } from './ContextQA';
+import { AINotes } from './AINotes';
 import './App.css';
-
+interface ExtractedImage {
+  src: string;
+  alt: string;
+  caption: string;
+}
 async function summarizeTextDirect(text: string): Promise<string> {
   const response = await fetch("http://localhost:11434/api/generate", {
     method: "POST",
@@ -24,6 +29,7 @@ function App() {
 
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+const [images, setImages] = useState<ExtractedImage[]>([]);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
@@ -55,8 +61,18 @@ function App() {
       }
 
       setTitle(response.title || '');
-      setContent(response.content || '');
-      console.log('[Extraction] Content preview:', response.content?.slice(0, 5000));
+setContent(response.content || '');
+setImages(response.images || []);
+
+console.log(
+  '[Extraction] Images extracted:',
+  response.images?.length || 0
+);
+
+console.log(
+  '[Extraction] Content preview:',
+  response.content?.slice(0, 5000)
+);
     } catch (err) {
       console.error('Page extraction failed:', err);
       setError('Unable to extract this page. Try refreshing the webpage and opening the extension again.');
@@ -175,6 +191,7 @@ function App() {
                 <strong style={{ color: '#0f172a' }}>EXTRACTED CONTENT</strong>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
               </div>
+ <AINotes content={content} images={images} />
             </div>
           )}
         </div>
