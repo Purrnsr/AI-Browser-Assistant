@@ -1,3 +1,4 @@
+import { KnowledgeBase } from './KnowledgeBase';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -30,6 +31,7 @@ function App() {
 
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+const [sourceUrl, setSourceUrl] = useState('');
 const [images, setImages] = useState<ExtractedImage[]>([]);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,7 @@ const [images, setImages] = useState<ExtractedImage[]>([]);
       });
 
       const activeTab = tabs[0];
+setSourceUrl(activeTab.url || '');
 
       if (!activeTab?.id) {
         throw new Error('No active tab found.');
@@ -194,6 +197,11 @@ console.log(
               </div>
  <AINotes content={content} images={images} />
 <StudyMaterial content={content} />
+<KnowledgeBase
+  title={title}
+  sourceUrl={sourceUrl}
+  content={content}
+/>
             </div>
           )}
         </div>
