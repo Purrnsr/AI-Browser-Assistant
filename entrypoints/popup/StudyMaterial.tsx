@@ -56,26 +56,12 @@ export function StudyMaterial({
   };
 
   return (
-    <div
-      style={{
-        marginTop: '12px',
-        padding: '10px',
-        background: '#f8fafc',
-        borderRadius: '6px',
-      }}
-    >
-      <strong
-        style={{
-          display: 'block',
-          color: '#0f172a',
-          fontSize: '13px',
-          marginBottom: '8px',
-        }}
-      >
-        STUDY MATERIAL
-      </strong>
-
-      <button
+  <div
+    style={{
+      marginTop: '10px',
+    }}
+  >
+    <button
         onClick={generateStudyMaterial}
         disabled={generating || !content.trim()}
         style={{

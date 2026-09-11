@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
 import {
   deleteFromKnowledgeBase,
   getKnowledgeBaseItems,
   saveToKnowledgeBase,
 } from '../../src/features/knowledge-base/knowledgeBaseService';
+import {
+  semanticSearch,
+  type SemanticSearchResult,
+} from '../../src/features/knowledge-base/semanticSearch';
 import type { KnowledgeBaseItem } from '../../src/features/knowledge-base/database';
 
 interface KnowledgeBaseProps {
@@ -21,6 +24,9 @@ export function KnowledgeBase({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [loadingItems, setLoadingItems] = useState(false);
+const [searchQuery, setSearchQuery] = useState('');
+const [searchResults, setSearchResults] = useState<SemanticSearchResult[]>([]);
+const [searching, setSearching] = useState(false);
 
   const loadItems = async () => {
     setLoadingItems(true);
@@ -69,6 +75,28 @@ export function KnowledgeBase({
       setSaving(false);
     }
   };
+const handleSemanticSearch = async () => {
+  if (!searchQuery.trim()) {
+    setSearchResults([]);
+    return;
+  }
+
+  setSearching(true);
+  setMessage('');
+
+  try {
+    const results = await semanticSearch(searchQuery, 5);
+    setSearchResults(results);
+  } catch (error) {
+    console.error('Semantic search failed:', error);
+    setMessage(
+      'Unable to perform semantic search. Make sure Ollama is running.'
+    );
+    setSearchResults([]);
+  } finally {
+    setSearching(false);
+  }
+};
 
   const deleteItem = async (itemId: number) => {
     try {
@@ -95,6 +123,45 @@ export function KnowledgeBase({
       <strong style={{ color: '#0f172a', fontSize: '12px' }}>
         PERSONAL KNOWLEDGE BASE
       </strong>
+<div style={{ marginTop: '10px' }}>
+  <strong style={{ fontSize: '11.5px', color: '#334155' }}>
+    SEMANTIC SEARCH
+  </strong>
+
+  <input
+    type="text"
+    value={searchQuery}
+    onChange={(event) => setSearchQuery(event.target.value)}
+    placeholder="Search your saved information..."
+    style={{
+      width: '100%',
+      marginTop: '6px',
+      padding: '7px',
+      boxSizing: 'border-box',
+      border: '1px solid #cbd5e1',
+      borderRadius: '5px',
+      fontSize: '11.5px',
+    }}
+  />
+
+  <button
+    onClick={handleSemanticSearch}
+    disabled={searching || !searchQuery.trim()}
+    style={{
+      width: '100%',
+      marginTop: '6px',
+      padding: '7px',
+      background: '#2563eb',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '5px',
+      cursor: searching ? 'default' : 'pointer',
+      fontSize: '11.5px',
+    }}
+  >
+    {searching ? 'Searching...' : 'Search Knowledge Base'}
+  </button>
+</div>
 
       <button
         onClick={saveCurrentPage}
@@ -125,7 +192,46 @@ export function KnowledgeBase({
           {message}
         </div>
       )}
+{searchResults.length > 0 && (
+  <div style={{ marginTop: '12px' }}>
+    <strong style={{ fontSize: '11.5px', color: '#334155' }}>
+      SEARCH RESULTS
+    </strong>
 
+    {searchResults.map((result) => (
+      <div
+        key={result.chunk.id}
+        style={{
+          marginTop: '7px',
+          padding: '8px',
+          background: '#fff',
+          border: '1px solid #dbeafe',
+          borderRadius: '5px',
+        }}
+      >
+        <div
+          style={{
+            fontSize: '10.5px',
+            color: '#2563eb',
+            marginBottom: '4px',
+          }}
+        >
+          Relevance: {(result.score * 100).toFixed(1)}%
+        </div>
+
+        <div
+          style={{
+            fontSize: '11px',
+            color: '#334155',
+            lineHeight: 1.4,
+          }}
+        >
+          {result.chunk.text}
+        </div>
+      </div>
+    ))}
+  </div>
+)}
       <div style={{ marginTop: '12px' }}>
         <strong style={{ fontSize: '11.5px', color: '#334155' }}>
           SAVED INFORMATION
