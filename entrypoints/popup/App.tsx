@@ -6,6 +6,7 @@ import { browser } from 'wxt/browser';
 import { ContextQA } from './ContextQA';
 import { AINotes } from './AINotes';
 import { StudyMaterial } from './StudyMaterial';
+import { EmailAssistant } from './EmailAssistant';
 import './App.css';
 
 interface ExtractedImage {
@@ -38,9 +39,9 @@ async function summarizeTextDirect(text: string): Promise<string> {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<
-    'summarize' | 'study' | 'knowledge' | 'qa'
-  >('summarize');
+ const [activeTab, setActiveTab] = useState<
+  'summarize' | 'study' | 'knowledge' | 'qa' | 'email'
+>('summarize');
 
   const [summarizerView, setSummarizerView] = useState<
     'extracted' | 'summary'
@@ -192,6 +193,14 @@ const [studyView, setStudyView] = useState<
           >
             Context Q&A
           </button>
+<button
+  className={`tab-btn ${
+    activeTab === 'email' ? 'active' : ''
+  }`}
+  onClick={() => setActiveTab('email')}
+>
+  Email Assistant
+</button>
         </div>
       </header>
 
@@ -579,6 +588,20 @@ const [studyView, setStudyView] = useState<
           ===================================================== */}
       {activeTab === 'qa' && (
         <ContextQA />
+      )}
+     {/* =====================================================
+          TAB 5: EMAIL ASSISTANT
+          ===================================================== */}
+      {activeTab === 'email' && (
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+          }}
+        >
+          <EmailAssistant />
+        </div>
       )}
     </div>
   );
