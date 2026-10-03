@@ -1,3 +1,14 @@
+import {
+  handleGenerateEmailReplyMessage,
+  handleSummarizeEmailMessage,
+} from '../src/features/email-assistant/aiHandler';
+
+import type {
+  GenerateEmailReplyRequest,
+  SummarizeEmailRequest,
+} from '../src/features/email-assistant/messages';
+import { handleGetEmailsMessage } from '../src/features/email-assistant/backgroundHandler';
+import type { GetEmailsRequest } from '../src/features/email-assistant/messages';
 import { handleSelectedTextMessage } from '../src/features/selected-text/backgroundHandler';
 import type { SelectedTextRequest } from '../src/features/selected-text/messages';
 
@@ -28,5 +39,21 @@ export default defineBackground(() => {
         message as GenerateStudyMaterialRequest
       );
     }
+if (message?.type === 'EMAIL_GET_RECENT') {
+  return handleGetEmailsMessage(
+    message as GetEmailsRequest
+  );
+}
+if (message?.type === 'EMAIL_SUMMARIZE') {
+  return handleSummarizeEmailMessage(
+    message as SummarizeEmailRequest
+  );
+}
+
+if (message?.type === 'EMAIL_REPLY_GENERATE') {
+  return handleGenerateEmailReplyMessage(
+    message as GenerateEmailReplyRequest
+  );
+}
   });
 });
