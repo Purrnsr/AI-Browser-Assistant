@@ -1,8 +1,8 @@
 import {
+  buildEmailActionItemsPrompt,
   buildEmailReplyPrompt,
   buildEmailSummaryPrompt,
 } from './prompts';
-
 const OLLAMA_URL = 'http://127.0.0.1:11434/api/generate';
 const MODEL_NAME = 'llama3.2:latest';
 
@@ -85,6 +85,27 @@ export const generateEmailReply = async (
   );
 
   console.log('[Email Assistant] Generating reply suggestion.');
+
+  return generateWithOllama(prompt);
+};
+export const extractEmailActionItems = async (
+  subject: string,
+  sender: string,
+  body: string
+): Promise<string> => {
+  if (!body.trim()) {
+    throw new Error('Email body is empty.');
+  }
+
+  const prompt = buildEmailActionItemsPrompt(
+    subject,
+    sender,
+    body
+  );
+
+  console.log(
+    '[Email Assistant] Extracting email action items and deadlines.'
+  );
 
   return generateWithOllama(prompt);
 };

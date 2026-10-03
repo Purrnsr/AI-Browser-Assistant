@@ -16,6 +16,7 @@ export interface GetEmailsResponse {
   emails?: EmailMessage[];
   error?: string;
 }
+
 export interface SummarizeEmailRequest {
   type: 'EMAIL_SUMMARIZE';
   email: EmailMessage;
@@ -37,5 +38,43 @@ export interface GenerateEmailReplyRequest {
 export interface GenerateEmailReplyResponse {
   success: boolean;
   reply?: string;
+  error?: string;
+}
+
+// =====================================================
+// EMAIL ACTION ITEMS & DEADLINES
+// =====================================================
+
+export interface EmailActionItem {
+  task: string;
+  responsibleParty: string;
+  dueDate: string;
+}
+
+export interface EmailImportantDate {
+  date: string;
+  event: string;
+  context: string;
+}
+
+export interface EmailDeadline {
+  deadline: string;
+  relatedAction: string;
+}
+
+export interface EmailActionItemExtraction {
+  actionItems: EmailActionItem[];
+  importantDates: EmailImportantDate[];
+  deadlines: EmailDeadline[];
+}
+
+export interface ExtractEmailActionItemsRequest {
+  type: 'EMAIL_ACTION_ITEMS_EXTRACT';
+  email: EmailMessage;
+}
+
+export interface ExtractEmailActionItemsResponse {
+  success: boolean;
+  extraction?: EmailActionItemExtraction;
   error?: string;
 }

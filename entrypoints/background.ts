@@ -1,13 +1,13 @@
 import {
+  handleExtractEmailActionItemsMessage,
   handleGenerateEmailReplyMessage,
   handleSummarizeEmailMessage,
 } from '../src/features/email-assistant/aiHandler';
-
 import type {
+  ExtractEmailActionItemsRequest,
   GenerateEmailReplyRequest,
   SummarizeEmailRequest,
-} from '../src/features/email-assistant/messages';
-import { handleGetEmailsMessage } from '../src/features/email-assistant/backgroundHandler';
+} from '../src/features/email-assistant/messages';import { handleGetEmailsMessage } from '../src/features/email-assistant/backgroundHandler';
 import type { GetEmailsRequest } from '../src/features/email-assistant/messages';
 import { handleSelectedTextMessage } from '../src/features/selected-text/backgroundHandler';
 import type { SelectedTextRequest } from '../src/features/selected-text/messages';
@@ -53,6 +53,11 @@ if (message?.type === 'EMAIL_SUMMARIZE') {
 if (message?.type === 'EMAIL_REPLY_GENERATE') {
   return handleGenerateEmailReplyMessage(
     message as GenerateEmailReplyRequest
+  );
+}
+if (message?.type === 'EMAIL_ACTION_ITEMS_EXTRACT') {
+  return handleExtractEmailActionItemsMessage(
+    message as ExtractEmailActionItemsRequest
   );
 }
   });

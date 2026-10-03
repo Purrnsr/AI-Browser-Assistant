@@ -28,6 +28,34 @@ interface GenerateEmailReplyResponse {
   reply?: string;
   error?: string;
 }
+interface EmailActionItem {
+  task: string;
+  responsibleParty: string;
+  dueDate: string;
+}
+
+interface EmailImportantDate {
+  date: string;
+  event: string;
+  context: string;
+}
+
+interface EmailDeadline {
+  deadline: string;
+  relatedAction: string;
+}
+
+interface EmailActionItemExtraction {
+  actionItems: EmailActionItem[];
+  importantDates: EmailImportantDate[];
+  deadlines: EmailDeadline[];
+}
+
+interface ExtractEmailActionItemsResponse {
+  success: boolean;
+  extraction?: EmailActionItemExtraction;
+  error?: string;
+}
 
 export function EmailAssistant() {
   const [emails, setEmails] = useState<EmailMessage[]>([]);
@@ -36,7 +64,8 @@ export function EmailAssistant() {
 
   const [summary, setSummary] = useState('');
   const [reply, setReply] = useState('');
-
+const [actionItemExtraction, setActionItemExtraction] =
+  useState<EmailActionItemExtraction | null>(null);
   const [userIntent, setUserIntent] = useState('');
   const [responseStyle, setResponseStyle] =
     useState('Professional and polite');
@@ -45,15 +74,17 @@ export function EmailAssistant() {
   const [summarizing, setSummarizing] = useState(false);
   const [generatingReply, setGeneratingReply] =
     useState(false);
+const [extractingActionItems, setExtractingActionItems] =
+  useState(false);
 
   const [error, setError] = useState('');
 
   const loadEmails = async () => {
     setLoadingEmails(true);
-    setError('');
-    setSummary('');
-    setReply('');
-    setSelectedEmail(null);
+   setSummary('');
+setReply('');
+setActionItemExtraction(null);
+setSelectedEmail(null);
 
     try {
       const response =
@@ -84,7 +115,47 @@ export function EmailAssistant() {
       setLoadingEmails(false);
     }
   };
+  const extractActionItems = async () => {
+    if (!selectedEmail) {
+      return;
+    }
 
+    setExtractingActionItems(true);
+    setError('');
+    setActionItemExtraction(null);
+
+    try {
+      const response =
+        (await browser.runtime.sendMessage({
+          type: 'EMAIL_ACTION_ITEMS_EXTRACT',
+          email: selectedEmail,
+        })) as ExtractEmailActionItemsResponse;
+
+      if (!response?.success) {
+        throw new Error(
+          response?.error ||
+            'Failed to extract email action items.'
+        );
+      }
+
+      setActionItemExtraction(
+        response.extraction || null
+      );
+    } catch (err) {
+      console.error(
+        '[Email Assistant] Action-item extraction failed:',
+        err
+      );
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to extract email action items.'
+      );
+    } finally {
+      setExtractingActionItems(false);
+    }
+  };
   const summarizeSelectedEmail = async () => {
     if (!selectedEmail) {
       return;
@@ -233,12 +304,13 @@ export function EmailAssistant() {
             {emails.map((email) => (
               <button
                 key={email.id}
-                onClick={() => {
-                  setSelectedEmail(email);
-                  setSummary('');
-                  setReply('');
-                  setError('');
-                }}
+               onClick={() => {
+  setSelectedEmail(email);
+  setSummary('');
+  setReply('');
+  setActionItemExtraction(null);
+  setError('');
+}}
                 style={{
                   textAlign: 'left',
                   padding: '8px',
@@ -338,7 +410,27 @@ export function EmailAssistant() {
               ? 'Summarizing Email...'
               : 'Summarize Email'}
           </button>
-
+<button
+  onClick={extractActionItems}
+  disabled={extractingActionItems}
+  style={{
+    width: '100%',
+    padding: '8px',
+    marginTop: '7px',
+    background: '#ea580c',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: extractingActionItems
+      ? 'default'
+      : 'pointer',
+    fontSize: '12.5px',
+  }}
+>
+  {extractingActionItems
+    ? 'Extracting Action Items...'
+    : 'Extract Action Items & Deadlines'}
+</button>
           {summary && !summarizing && (
             <div
               style={{
@@ -356,6 +448,158 @@ export function EmailAssistant() {
               </ReactMarkdown>
             </div>
           )}
+{actionItemExtraction && !extractingActionItems && (
+  <div
+    style={{
+      background: '#fff7ed',
+      padding: '9px',
+      borderRadius: '6px',
+      border: '1px solid #fed7aa',
+      fontSize: '11.5px',
+    }}
+  >
+    <strong
+      style={{
+        display: 'block',
+        color: '#9a3412',
+        fontSize: '12px',
+        marginBottom: '8px',
+      }}
+    >
+      ACTION ITEMS & DEADLINES
+    </strong>
+
+    {actionItemExtraction.actionItems.length > 0 && (
+      <div style={{ marginBottom: '10px' }}>
+        <strong
+          style={{
+            display: 'block',
+            marginBottom: '5px',
+          }}
+        >
+          Action Items
+        </strong>
+
+        {actionItemExtraction.actionItems.map(
+          (item, index) => (
+            <div
+              key={`action-${index}`}
+              style={{
+                marginBottom: '7px',
+                paddingLeft: '6px',
+              }}
+            >
+              <div>• {item.task}</div>
+
+              {item.responsibleParty && (
+                <div
+                  style={{
+                    marginTop: '2px',
+                    color: '#64748b',
+                  }}
+                >
+                  Responsible: {item.responsibleParty}
+                </div>
+              )}
+
+              {item.dueDate && (
+                <div
+                  style={{
+                    marginTop: '2px',
+                    color: '#64748b',
+                  }}
+                >
+                  Due: {item.dueDate}
+                </div>
+              )}
+            </div>
+          )
+        )}
+      </div>
+    )}
+
+    {actionItemExtraction.importantDates.length > 0 && (
+      <div style={{ marginBottom: '10px' }}>
+        <strong
+          style={{
+            display: 'block',
+            marginBottom: '5px',
+          }}
+        >
+          Important Dates
+        </strong>
+
+        {actionItemExtraction.importantDates.map(
+          (item, index) => (
+            <div
+              key={`date-${index}`}
+              style={{
+                marginBottom: '7px',
+                paddingLeft: '6px',
+              }}
+            >
+              <div>
+                • {item.date} — {item.event}
+              </div>
+
+              {item.context && (
+                <div
+                  style={{
+                    marginTop: '2px',
+                    color: '#64748b',
+                  }}
+                >
+                  {item.context}
+                </div>
+              )}
+            </div>
+          )
+        )}
+      </div>
+    )}
+
+    {actionItemExtraction.deadlines.length > 0 && (
+      <div>
+        <strong
+          style={{
+            display: 'block',
+            marginBottom: '5px',
+          }}
+        >
+          Deadlines
+        </strong>
+
+        {actionItemExtraction.deadlines.map(
+          (item, index) => (
+            <div
+              key={`deadline-${index}`}
+              style={{
+                marginBottom: '7px',
+                paddingLeft: '6px',
+              }}
+            >
+              • {item.deadline} — {item.relatedAction}
+            </div>
+          )
+        )}
+      </div>
+    )}
+
+    {actionItemExtraction.actionItems.length === 0 &&
+      actionItemExtraction.importantDates.length === 0 &&
+      actionItemExtraction.deadlines.length === 0 && (
+        <div
+          style={{
+            color: '#64748b',
+            lineHeight: 1.4,
+          }}
+        >
+          No action items, important dates, or deadlines
+          were identified in this email.
+        </div>
+      )}
+  </div>
+)}
 
           <div
             style={{
