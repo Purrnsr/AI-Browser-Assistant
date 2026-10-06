@@ -7,6 +7,8 @@ import { ContextQA } from './ContextQA';
 import { AINotes } from './AINotes';
 import { StudyMaterial } from './StudyMaterial';
 import { EmailAssistant } from './EmailAssistant';
+import { WebResearchPanel } from '../../src/components/research/WebResearchPanel';
+
 import './App.css';
 
 interface ExtractedImage {
@@ -39,16 +41,16 @@ async function summarizeTextDirect(text: string): Promise<string> {
 }
 
 function App() {
- const [activeTab, setActiveTab] = useState<
-  'summarize' | 'study' | 'knowledge' | 'qa' | 'email'
->('summarize');
+  const [activeTab, setActiveTab] = useState<
+    'summarize' | 'study' | 'knowledge' | 'qa' | 'email' | 'research'
+  >('summarize');
 
   const [summarizerView, setSummarizerView] = useState<
     'extracted' | 'summary'
   >('extracted');
-const [studyView, setStudyView] = useState<
-  'notes' | 'studyMaterial'
->('notes');
+  const [studyView, setStudyView] = useState<
+    'notes' | 'studyMaterial'
+  >('notes');
 
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
@@ -72,9 +74,13 @@ const [studyView, setStudyView] = useState<
 
       const activeTab = tabs[0];
 
+      if (!activeTab) {
+        throw new Error('No active tab found.');
+      }
+
       setSourceUrl(activeTab.url || '');
 
-      if (!activeTab?.id) {
+      if (!activeTab.id) {
         throw new Error('No active tab found.');
       }
 
@@ -193,14 +199,24 @@ const [studyView, setStudyView] = useState<
           >
             Context Q&A
           </button>
-<button
-  className={`tab-btn ${
-    activeTab === 'email' ? 'active' : ''
-  }`}
-  onClick={() => setActiveTab('email')}
->
-  Email Assistant
-</button>
+
+          <button
+            className={`tab-btn ${
+              activeTab === 'email' ? 'active' : ''
+            }`}
+            onClick={() => setActiveTab('email')}
+          >
+            Email Assistant
+          </button>
+
+          <button
+            className={`tab-btn ${
+              activeTab === 'research' ? 'active' : ''
+            }`}
+            onClick={() => setActiveTab('research')}
+          >
+            Web Research
+          </button>
         </div>
       </header>
 
@@ -472,116 +488,117 @@ const [studyView, setStudyView] = useState<
           TAB 2: STUDY & NOTES
           ===================================================== */}
       {activeTab === 'study' && (
-  <div
-    style={{
-      display: 'flex',
-      flexDirection: 'column',
-      flex: 1,
-      overflow: 'hidden',
-    }}
-  >
-    {/* Study & Notes Secondary Navigation */}
-    <div
-      style={{
-        display: 'flex',
-        borderBottom: '1px solid #e2e8f0',
-        marginBottom: '10px',
-        flexShrink: 0,
-      }}
-    >
-      <button
-        onClick={() => setStudyView('notes')}
-        style={{
-          flex: 1,
-          padding: '7px 0',
-          border: 'none',
-          background: 'none',
-          cursor: 'pointer',
-          fontSize: '11.5px',
-          fontWeight:
-            studyView === 'notes' ? 600 : 500,
-          color:
-            studyView === 'notes'
-              ? '#2563eb'
-              : '#64748b',
-          borderBottom:
-            studyView === 'notes'
-              ? '2px solid #2563eb'
-              : '2px solid transparent',
-        }}
-      >
-        AI Notes
-      </button>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden',
+          }}
+        >
+          {/* Study & Notes Secondary Navigation */}
+          <div
+            style={{
+              display: 'flex',
+              borderBottom: '1px solid #e2e8f0',
+              marginBottom: '10px',
+              flexShrink: 0,
+            }}
+          >
+            <button
+              onClick={() => setStudyView('notes')}
+              style={{
+                flex: 1,
+                padding: '7px 0',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '11.5px',
+                fontWeight:
+                  studyView === 'notes' ? 600 : 500,
+                color:
+                  studyView === 'notes'
+                    ? '#2563eb'
+                    : '#64748b',
+                borderBottom:
+                  studyView === 'notes'
+                    ? '2px solid #2563eb'
+                    : '2px solid transparent',
+              }}
+            >
+              AI Notes
+            </button>
 
-      <button
-        onClick={() =>
-          setStudyView('studyMaterial')
-        }
-        style={{
-          flex: 1,
-          padding: '7px 0',
-          border: 'none',
-          background: 'none',
-          cursor: 'pointer',
-          fontSize: '11.5px',
-          fontWeight:
-            studyView === 'studyMaterial'
-              ? 600
-              : 500,
-          color:
-            studyView === 'studyMaterial'
-              ? '#2563eb'
-              : '#64748b',
-          borderBottom:
-            studyView === 'studyMaterial'
-              ? '2px solid #2563eb'
-              : '2px solid transparent',
-        }}
-      >
-        Study Material
-      </button>
-    </div>
+            <button
+              onClick={() =>
+                setStudyView('studyMaterial')
+              }
+              style={{
+                flex: 1,
+                padding: '7px 0',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '11.5px',
+                fontWeight:
+                  studyView === 'studyMaterial'
+                    ? 600
+                    : 500,
+                color:
+                  studyView === 'studyMaterial'
+                    ? '#2563eb'
+                    : '#64748b',
+                borderBottom:
+                  studyView === 'studyMaterial'
+                    ? '2px solid #2563eb'
+                    : '2px solid transparent',
+              }}
+            >
+              Study Material
+            </button>
+          </div>
 
-    {/* Active Study View */}
-    <div
-      style={{
-        flex: 1,
-        overflowY: 'auto',
-      }}
-    >
-      {studyView === 'notes' && (
-        <AINotes
-          content={content}
-          images={images}
-        />
+          {/* Active Study View */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+            }}
+          >
+            {studyView === 'notes' && (
+              <AINotes
+                content={content}
+                images={images}
+              />
+            )}
+
+            {studyView === 'studyMaterial' && (
+              <StudyMaterial
+                content={content}
+              />
+            )}
+          </div>
+        </div>
       )}
 
-      {studyView === 'studyMaterial' && (
-        <StudyMaterial
-          content={content}
-        />
-      )}
-    </div>
-  </div>
-)}
       {/* =====================================================
           TAB 3: KNOWLEDGE BASE
           ===================================================== */}
       {activeTab === 'knowledge' && (
-  <div
-    style={{
-      flex: 1,
-      overflowY: 'auto',
-      minHeight: 0,
-    }}
-  >
-    <KnowledgeBase
-      title={title}
-      sourceUrl={sourceUrl}
-      content={content}
-    />
-  </div>
-)}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+          }}
+        >
+          <KnowledgeBase
+            title={title}
+            sourceUrl={sourceUrl}
+            content={content}
+          />
+        </div>
+      )}
 
       {/* =====================================================
           TAB 4: CONTEXT Q&A
@@ -589,7 +606,8 @@ const [studyView, setStudyView] = useState<
       {activeTab === 'qa' && (
         <ContextQA />
       )}
-     {/* =====================================================
+
+      {/* =====================================================
           TAB 5: EMAIL ASSISTANT
           ===================================================== */}
       {activeTab === 'email' && (
@@ -601,6 +619,21 @@ const [studyView, setStudyView] = useState<
           }}
         >
           <EmailAssistant />
+        </div>
+      )}
+
+      {/* =====================================================
+          TAB 6: WEB RESEARCH (FEATURE 4.12)
+          ===================================================== */}
+      {activeTab === 'research' && (
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+          }}
+        >
+          <WebResearchPanel />
         </div>
       )}
     </div>
