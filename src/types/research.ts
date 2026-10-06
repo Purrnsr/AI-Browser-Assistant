@@ -19,3 +19,16 @@ export interface ResearchResult {
   sources: ProcessedResearchSource[];
   createdAt: number;
 }
+
+export interface ResearchAnalysisRequest {
+  file?: File;
+  content?: string;
+  analysisType: 'summary' | 'methodology' | 'key_findings' | 'qa';
+  userQuestion?: string;
+}
+
+export interface ResearchAnalysisResult {
+  summary?: string;
+  extractedSource?: ProcessedResearchSource;
+  processedAt: number;
+}
