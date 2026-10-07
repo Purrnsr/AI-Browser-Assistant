@@ -8,11 +8,13 @@ import { ContextQA } from './ContextQA';
 import { AINotes } from './AINotes';
 import { StudyMaterial } from './StudyMaterial';
 import { EmailAssistant } from './EmailAssistant';
-import { WebResearchPanel } from '../../src/components/research/WebResearchPanel';
-import { StudyPanel } from '../../src/components/research/studyPanel';
+import { WebResearchPanel } from '~/src/components/research/WebResearchPanel';
+import { StudyPanel } from '~/src/components/research/studyPanel';
+import { SettingsPanel } from '~/src/components/research/settingspanel';
 
-import { generateQuizFromContent, generateFlashcardsFromContent } from '../../src/services/studyService';
-import type { QuizSet, FlashcardSet } from '../../src/services/db';
+import { generateQuizFromContent, generateFlashcardsFromContent } from '~/src/services/studyService';
+import type { QuizSet, FlashcardSet } from '~/src/services/db';
+import { getConfig } from '~/src/db/schema';
 
 import './App.css';
 
@@ -23,28 +25,56 @@ interface ExtractedImage {
 }
 
 async function summarizeTextDirect(text: string): Promise<string> {
-  const response = await fetch('http://localhost:11434/api/generate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'llama3.2',
-      prompt: `Summarize the following webpage content concisely into key takeaways:\n\n${text.slice(
-        0,
-        8000
-      )}`,
+  const config = await getConfig();
+  const endpoint = config.provider === 'ollama' 
+    ? `${config.baseUrl.replace(/\/$/, '')}/api/generate`
+    : `${config.baseUrl.replace(/\/$/, '')}/v1/chat/completions`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (config.apiKey) {
+    headers['Authorization'] = `Bearer ${config.apiKey}`;
+  }
+
+  let body: string;
+
+  if (config.provider === 'ollama') {
+    body = JSON.stringify({
+      model: config.chatModel || 'llama3.2',
+      prompt: `Summarize the following webpage content concisely into key takeaways:\n\n${text.slice(0, 8000)}`,
       stream: false,
-    }),
+    });
+  } else {
+    body = JSON.stringify({
+      model: config.chatModel || 'llama3.2',
+      messages: [
+        {
+          role: 'user',
+          content: `Summarize the following webpage content concisely into key takeaways:\n\n${text.slice(0, 8000)}`,
+        },
+      ],
+    });
+  }
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body,
   });
 
+  if (!response.ok) {
+    throw new Error(`Service returned HTTP error ${response.status}`);
+  }
+
   const data = await response.json();
-  return data.response;
+  return config.provider === 'ollama' ? data.response : data.choices[0]?.message?.content || '';
 }
 
 export function App() {
   const [activeTab, setActiveTab] = useState<
-    'summarize' | 'study' | 'knowledge' | 'qa' | 'email' | 'research'
+    'summarize' | 'study' | 'knowledge' | 'qa' | 'email' | 'research' | 'settings'
   >('summarize');
 
   const [summarizerView, setSummarizerView] = useState<'extracted' | 'summary'>('extracted');
@@ -126,7 +156,7 @@ export function App() {
     } catch (err) {
       console.error('Page summarization failed:', err);
       setError(
-        'Unable to generate the summary. Make sure Ollama is running and the llama3.2 model is available.'
+        'Unable to generate the summary. Make sure the AI provider settings are correct and active.'
       );
     } finally {
       setSummarizing(false);
@@ -175,7 +205,16 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h2 className="app-title">AI Browser Assistant</h2>
+        <div className="app-header-top">
+          <h2 className="app-title">AI Browser Assistant</h2>
+          <button
+            className={`settings-icon-btn ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab(activeTab === 'settings' ? 'summarize' : 'settings')}
+            title="AI Configuration Settings"
+          >
+            ⚙️
+          </button>
+        </div>
 
         {/* Primary Navigation Grid */}
         <div className="tab-container">
@@ -318,7 +357,7 @@ export function App() {
       )}
 
       {/* =====================================================
-          TAB 2: STUDY & NOTES (Feature 4.14 Wired)
+          TAB 2: STUDY & NOTES
           ===================================================== */}
       {activeTab === 'study' && (
         <div className="tab-body">
@@ -355,7 +394,7 @@ export function App() {
               <div>
                 {!content.trim() ? (
                   <div className="placeholder-box">
-                    <div className="placeholder-icon">💡</div>
+                    <div className="placeholder-icon">📚</div>
                     <p style={{ margin: 0 }}>
                       Please extract a webpage first in the <strong>Summarizer</strong> tab to generate study tools.
                     </p>
@@ -368,7 +407,7 @@ export function App() {
                         onClick={handleGenerateQuiz}
                         disabled={generatingStudy}
                       >
-                        {generatingStudy ? 'Generating...' : '🎯 Generate Quiz'}
+                        {generatingStudy ? 'Generating...' : '💡 Generate Quiz'}
                       </button>
                       <button
                         className="secondary-btn"
@@ -438,6 +477,15 @@ export function App() {
       {activeTab === 'research' && (
         <div className="scrollable-content">
           <WebResearchPanel />
+        </div>
+      )}
+
+      {/* =====================================================
+          TAB 7: AI CONFIGURATION (FEATURE 4.15)
+          ===================================================== */}
+      {activeTab === 'settings' && (
+        <div className="scrollable-content">
+          <SettingsPanel />
         </div>
       )}
     </div>
