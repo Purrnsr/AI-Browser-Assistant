@@ -9,6 +9,10 @@ import { AINotes } from './AINotes';
 import { StudyMaterial } from './StudyMaterial';
 import { EmailAssistant } from './EmailAssistant';
 import { WebResearchPanel } from '../../src/components/research/WebResearchPanel';
+import { StudyPanel } from '../../src/components/research/studyPanel';
+
+import { generateQuizFromContent, generateFlashcardsFromContent } from '../../src/services/studyService';
+import type { QuizSet, FlashcardSet } from '../../src/services/db';
 
 import './App.css';
 
@@ -43,10 +47,8 @@ export function App() {
     'summarize' | 'study' | 'knowledge' | 'qa' | 'email' | 'research'
   >('summarize');
 
-  const [summarizerView, setSummarizerView] = useState<'extracted' | 'summary'>(
-    'extracted'
-  );
-  const [studyView, setStudyView] = useState<'notes' | 'studyMaterial'>('notes');
+  const [summarizerView, setSummarizerView] = useState<'extracted' | 'summary'>('extracted');
+  const [studyView, setStudyView] = useState<'notes' | 'studyMaterial' | 'quizFlashcards'>('notes');
 
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
@@ -56,6 +58,11 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
   const [error, setError] = useState('');
+
+  // Feature 4.14 State Management
+  const [quizSet, setQuizSet] = useState<QuizSet | null>(null);
+  const [flashcardSet, setFlashcardSet] = useState<FlashcardSet | null>(null);
+  const [generatingStudy, setGeneratingStudy] = useState(false);
 
   const extractPage = async () => {
     setLoading(true);
@@ -126,12 +133,51 @@ export function App() {
     }
   };
 
+  // Feature 4.14 Handlers
+  const handleGenerateQuiz = async () => {
+    if (!content.trim()) {
+      setError('Please extract webpage content first.');
+      return;
+    }
+    setGeneratingStudy(true);
+    setError('');
+    try {
+      const generated = await generateQuizFromContent(content, title || 'Webpage Quiz');
+      setFlashcardSet(null);
+      setQuizSet(generated);
+    } catch (err) {
+      console.error('Quiz generation failed:', err);
+      setError('Failed to generate quiz. Ensure local AI service is active.');
+    } finally {
+      setGeneratingStudy(false);
+    }
+  };
+
+  const handleGenerateFlashcards = async () => {
+    if (!content.trim()) {
+      setError('Please extract webpage content first.');
+      return;
+    }
+    setGeneratingStudy(true);
+    setError('');
+    try {
+      const generated = await generateFlashcardsFromContent(content, title || 'Webpage Flashcards');
+      setQuizSet(null);
+      setFlashcardSet(generated);
+    } catch (err) {
+      console.error('Flashcard generation failed:', err);
+      setError('Failed to generate flashcards. Ensure local AI service is active.');
+    } finally {
+      setGeneratingStudy(false);
+    }
+  };
+
   return (
     <div className="app">
       <header className="app-header">
         <h2 className="app-title">AI Browser Assistant</h2>
 
-        {/* Primary Top Navigation Bar */}
+        {/* Primary Navigation Grid */}
         <div className="tab-container">
           <button
             className={`tab-btn ${activeTab === 'summarize' ? 'active' : ''}`}
@@ -272,7 +318,7 @@ export function App() {
       )}
 
       {/* =====================================================
-          TAB 2: STUDY & NOTES
+          TAB 2: STUDY & NOTES (Feature 4.14 Wired)
           ===================================================== */}
       {activeTab === 'study' && (
         <div className="tab-body">
@@ -290,11 +336,71 @@ export function App() {
             >
               Study Material
             </button>
+
+            <button
+              onClick={() => setStudyView('quizFlashcards')}
+              className={`subtab-btn ${studyView === 'quizFlashcards' ? 'active' : ''}`}
+            >
+              Quiz & Cards
+            </button>
           </div>
+
+          {error && <div className="error-message">{error}</div>}
 
           <div className="scrollable-content">
             {studyView === 'notes' && <AINotes content={content} images={images} />}
             {studyView === 'studyMaterial' && <StudyMaterial content={content} />}
+
+            {studyView === 'quizFlashcards' && (
+              <div>
+                {!content.trim() ? (
+                  <div className="placeholder-box">
+                    <div className="placeholder-icon">💡</div>
+                    <p style={{ margin: 0 }}>
+                      Please extract a webpage first in the <strong>Summarizer</strong> tab to generate study tools.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="study-actions-grid">
+                      <button
+                        className="primary-btn"
+                        onClick={handleGenerateQuiz}
+                        disabled={generatingStudy}
+                      >
+                        {generatingStudy ? 'Generating...' : '🎯 Generate Quiz'}
+                      </button>
+                      <button
+                        className="secondary-btn"
+                        onClick={handleGenerateFlashcards}
+                        disabled={generatingStudy}
+                      >
+                        {generatingStudy ? 'Generating...' : '🎴 Generate Cards'}
+                      </button>
+                    </div>
+
+                    {!quizSet && !flashcardSet && !generatingStudy && (
+                      <div className="placeholder-box" style={{ marginTop: '10px' }}>
+                        Choose <strong>Generate Quiz</strong> or <strong>Generate Cards</strong> to start practicing.
+                      </div>
+                    )}
+
+                    {(quizSet || flashcardSet) && (
+                      <div style={{ marginTop: '10px' }}>
+                        <StudyPanel
+                          quizSet={quizSet || undefined}
+                          flashcardSet={flashcardSet || undefined}
+                          onClose={() => {
+                            setQuizSet(null);
+                            setFlashcardSet(null);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
